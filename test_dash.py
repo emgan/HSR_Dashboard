@@ -28,7 +28,10 @@ banners_dict = {
 app = Dash(__name__, external_stylesheets=external_stylesheets,suppress_callback_exceptions=True)
 
 app.layout = dbc.Container([
-    html.H1("Honkai: Star Rail Warp Dashboard"),
+    html.Div(
+        html.H1("Honkai: Star Rail Warp Dashboard"), style={'textAlign':'center'}
+    ),
+    
     html.Hr(),
     
     dbc.Row(
@@ -40,23 +43,17 @@ app.layout = dbc.Container([
                             children=dbc.Button('Select Files', color="light", className="me-1"),
                             # Allow multiple files to be uploaded
                             multiple=False
-                        ), className=".col-md-4"
+                        )
                     )
                 ),
                 dbc.Col(
                     html.Div(id='output-data-upload'),
-                    className=".col-xs-12 .col-md-8"
                 )
             ],
             align="center",
         ),
     html.Hr(),
-    dbc.Row([
-                dbc.Col(
-                    html.Div(id='output-div'), class_name=".col-xs-6 .col-md-4"
-                    )
-            ]
-        ),
+    html.Div(id='output-div'),
     dcc.Store(id='store-data-selected', data=[], storage_type='memory')
     ],
     fluid=True
@@ -156,17 +153,49 @@ def select_data(data_banners, data_stellar, data_departure, data_char, data_cone
 
 @app.callback(
     Output('output-div', 'children'),
-    Input('store-data-selected', 'data')
+    Input('store-data-selected', 'data'),
+    Input('banner-set', 'value')
 )
 
-def create_table(data):
-    df = pd.DataFrame(data)
+# def create_table(data):
+#     df = pd.DataFrame(data)
 
-    my_table = dash_table.DataTable(
-        columns=[{"name": i, "id": i} for i in df.columns],
-        data=df.to_dict('records')
-    )
-    return my_table
+#     my_table = dash_table.DataTable(
+#         columns=[{"name": i, "id": i} for i in df.columns],
+#         data=df.to_dict('records')
+#     )
+#     return my_table
+
+def update_layout(data, value):
+    print(f"selected value: {value}")
+    df = pd.DataFrame(data)
+    if value == 'all Statistics':
+        df = df.rename(columns={'AVG Pity 5★':'avg_pity_5_star'})
+        avg_five__strs_pulls = df['avg_pity_5_star'][df['avg_pity_5_star']>0].mean()
+        layout = dbc.Row(
+            [
+                dbc.Col(
+                    dbc.Row([
+                        dbc.Card([
+                            dbc.Row(
+                                dbc.Label("average numbers of pulls for a 5 star:"),
+                            ),
+                            dbc.Row(
+                                dbc.Label(avg_five__strs_pulls)
+                            )
+                        ])
+                    ]), width=2
+                ),
+                dbc.Col(
+                    html.Div(), width=8
+                ),
+
+
+            ]
+        )
+        return layout
+
+
 # @app.callback(Output('output-div', 'children'),
 #                 Input('stored-Banners','data'),
 #                 Input('stored-stellar','data'),
