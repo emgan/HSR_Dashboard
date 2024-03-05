@@ -40,7 +40,7 @@ app.layout = dbc.Container([
                     html.Div(
                         dcc.Upload(
                             id='upload-data',
-                            children=dbc.Button('Select Files', color="light", className="me-1"),
+                            children=dbc.Button('Select Files', color="light", class_name="m-2"),
                             # Allow multiple files to be uploaded
                             multiple=False
                         )
@@ -170,21 +170,57 @@ def update_layout(data, value):
     print(f"selected value: {value}")
     df = pd.DataFrame(data)
     if value == 'all Statistics':
-        df = df.rename(columns={'AVG Pity 5★':'avg_pity_5_star'})
+        df = df.rename(columns={'AVG Pity 5★':'avg_pity_5_star', '5★': '5_star', '4★':'4_star', 'AVG Pity 4★':'avg_pity_4_star'})
+        df_banners_tsliced = df.loc[:, :'avg_pity_4_star']
+        df_grouped_type = df_banners_tsliced.groupby(['Type']).sum()
+
         avg_five__strs_pulls = df['avg_pity_5_star'][df['avg_pity_5_star']>0].mean()
+        total_warp = df['Warps'].sum()
+
+        nb_4star_char_event = df_grouped_type.loc['Character Event Warp', '4_star']
+        nb_4star_beginner_banner = df_grouped_type.loc['Departure Warp', '4_star']
+        nb_4star_cone_banner = df_grouped_type.loc['Light Cone Event Warp', '4_star']
+        nb_4star_normal_banner = df_grouped_type.loc['Stellar Warp', '4_star']
+
         layout = dbc.Row(
             [
                 dbc.Col(
                     dbc.Row([
                         dbc.Card([
                             dbc.Row(
-                                dbc.Label("average numbers of pulls for a 5 star:"),
+                                dbc.Label("average numbers of pulls for a 5 star:"),class_name='mt-4', align='center'
                             ),
                             dbc.Row(
-                                dbc.Label(avg_five__strs_pulls)
+                                dbc.Label(avg_five__strs_pulls), align='center'
                             )
-                        ])
-                    ]), width=2
+                        ],class_name='mt-2 mb-2'),
+                        dbc.Card([
+                            dbc.Row(
+                                dbc.Label("total Warp: "),class_name='mt-4', align='center'
+                            ),
+                            dbc.Row(
+                                dbc.Label(total_warp), align='center'
+                            )
+                        ],class_name='mt-2 mb-2'),
+                        dbc.Card([
+                            dbc.Row(
+                                dbc.Label(f"nb of 4 star for Event banner: {nb_4star_char_event}"), class_name='mt-4'
+                            ),
+                            html.Hr(),
+                            dbc.Row(
+                                dbc.Label(f"nb of 4 star for Light Cone banner: {nb_4star_cone_banner}")
+                            ),
+                            html.Hr(),
+                            dbc.Row(
+                                dbc.Label(f"nb of 4 star for Normal banner: {nb_4star_normal_banner}")
+                            ),
+                            html.Hr(),
+                            dbc.Row(
+                                dbc.Label(f"nb of 4 star for Beginner banner: {nb_4star_beginner_banner}"), class_name='mb-4'
+                            )
+                        ], class_name='mt-2 mb-2')
+
+                    ]), width=2, class_name='m-2'
                 ),
                 dbc.Col(
                     html.Div(), width=8
