@@ -9,6 +9,9 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
+
+from src import GenerateFigs
+
 external_stylesheets = [dbc.themes.CYBORG, dbc.icons.BOOTSTRAP]
 
 def reformat_df(df):
@@ -24,6 +27,9 @@ banners_dict = {
     'Character Event Warp' : 'stored-char',
     'Light Cone Event Warp' : 'stored-cone'
     }
+
+overall_drop_name = ['average number of pulls for 5 stars',
+                     'average number of pulls for 4 stars']
 
 app = Dash(__name__, external_stylesheets=external_stylesheets,suppress_callback_exceptions=True)
 
@@ -54,7 +60,10 @@ app.layout = dbc.Container([
         ),
     html.Hr(),
     html.Div(id='output-div'),
-    dcc.Store(id='store-data-selected', data=[], storage_type='memory')
+
+    dcc.Store(id='store-data-selected', data=[], storage_type='memory'),
+    dcc.Store(id='store-data-evo', data=[], storage_type='memory')
+
     ],
     fluid=True
 )
@@ -222,14 +231,42 @@ def update_layout(data, value):
 
                     ]), width=2, class_name='m-2'
                 ),
-                dbc.Col(
-                    html.Div(), width=8
-                ),
+
+                dbc.Col([
+                    dbc.Row(
+                        dcc.Dropdown(
+                            id='overal_dropdown',
+                            options=overall_drop_name,
+                            value=overall_drop_name[0]
+                        ), class_name='mb-4'
+                    ),
+                    dbc.Row(
+                        dcc.Graph(id='evo_average_pull')
+                    )], 
+                    width=9, class_name='m-2'
+            ),
 
 
             ]
         )
-        return layout
+    else:
+        layout = html.Div(html.H3("Work In progress"), style={'textAlign':'center'})
+    return layout
+
+@app.callback(
+    Output('evo_average_pull', 'figure'),
+    Input('overal_dropdown', 'value'),
+    Input('store-data-selected', 'data')
+)
+
+def update_evo_graph(dropdown_value, df_data):
+    print(f'dropdown value: {dropdown_value}')
+    df = pd.DataFrame(df_data)
+    df = df.rename(columns={'AVG Pity 5★':'avg_pity_5_star', '5★': '5_star', '4★':'4_star', 'AVG Pity 4★':'avg_pity_4_star'})
+    df = df[df['Type'] == 'Character Event Warp']
+    fig = GenerateFigs.evo_average_pull(dropdown_value, df)
+    return fig
+
 
 
 # @app.callback(Output('output-div', 'children'),
