@@ -60,8 +60,10 @@ app.layout = dbc.Container([
         ),
     html.Hr(),
     html.Div(id='output-div'),
+
     dcc.Store(id='store-data-selected', data=[], storage_type='memory'),
     dcc.Store(id='store-data-evo', data=[], storage_type='memory')
+
     ],
     fluid=True
 )
@@ -229,6 +231,7 @@ def update_layout(data, value):
 
                     ]), width=2, class_name='m-2'
                 ),
+
                 dbc.Col([
                     dbc.Row(
                         dcc.Dropdown(
